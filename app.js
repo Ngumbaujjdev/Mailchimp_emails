@@ -1,50 +1,62 @@
-const express=require("express")
-//fetch https module
-const https=require("https")
-//body parser require to get the form
-const bodyParser=require("body-parser")
+const { response } = require("express");
+const request = require("request");
+const bodyParser = require("body-parser");
+const express = require("express");
+const https = require("https");
 
-//initialize app
-const app=express()
-//app to use body parser
-app.use(bodyParser.urlencoded({extended:true}))
+// use the modules
+const app = express();
+// use static to enable css
+app.use(express.static("public"));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/" ,function(req,res){
-    res.sendFile(__dirname +"/index.html")
-    
-})
-//receiving data from the form
-app.post("/",function(req,res){
-    //getting the bodyform
-    
-    //from html
-let myQuery=req.body.cityName
-// let appId="" enter your API key
-let myUnit="metric"
-let url=`https://api.openweathermap.org/data/2.5/weather?q=${myQuery}&appid=${appId}&units=${myUnit}`
-https.get(url ,function(response){
-    //gettin the error code
-    console.log(response.statusCode)
-    //printing the data sent back
-    response.on("data",function(data){
-        //turn data to object
-      const weatherData=  JSON.parse(data)
-      //accessing the JSON individuals
-      const temp=weatherData.main.temp
-      const description=weatherData.weather[0].description
-      //multiple sends
-      res.write(`<p>the weather is currentle ${description}</p>`)
-      res.write(`<h1>the temprature in ${myQuery} is ${temp} degree celcius</h1>`)
+// get
+app.get("/", (request, response) => {
+  response.sendFile(__dirname + "/signup.html");
+});
+// what to be posted to the home route
+app.post("/", (req, res) => {
+  let firstName = req.body.firstname;
+  let lastName = req.body.lastname;
+  let email = req.body.Email;
 
-      res.send()
-    })
-})
-
-
-})
-//root route
-
-//callback
-app.listen(3000,function(){
-    console.log("server running on port 3000.")
-})
+  let data = {
+    members: [
+      {
+        email_address: email,
+        status: "subscribed",
+        merge_fields: {
+          FNAME: firstName,
+          LNAME: lastName,
+        },
+      },
+    ],
+  };
+  let jsonData = JSON.stringify(data);
+  const url = "https://us21.api.mailchimp.com/3.0/lists/listID";
+  const options = {
+    method: "POST",
+//     auth: "joshua:appid",
+  };
+  const request = https.request(url, options, function (response) {
+    if (response.statusCode === 200) {
+      res.sendFile(__dirname + "/success.html");
+    } else {
+      res.sendFile(__dirname + "/failure.html");
+    }
+    response.on("data", function (data) {
+      console.log(JSON.parse(data));
+    });
+  });
+  request.write(jsonData);
+  request.end();
+});
+// posting to the failure page
+app.post("/failure", (req, res) => {
+  res.redirect("/");
+});
+// what to be listened bythe server
+app.listen(3000 || process.env.PORT, () => {
+  console.log("server running on port 3000");
+});
+// 
