@@ -19,7 +19,7 @@ app.post("/",function(req,res){
     
     //from html
 let myQuery=req.body.cityName
-let appId="5374ab36a9447498c8f8e01895fbeaae"
+// let appId="" enter your API key
 let myUnit="metric"
 let url=`https://api.openweathermap.org/data/2.5/weather?q=${myQuery}&appid=${appId}&units=${myUnit}`
 https.get(url ,function(response){
